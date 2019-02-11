@@ -1,0 +1,116 @@
+#
+# config.yml
+#
+# Example values for main configuration file for Rolodex server.
+# Please copy this example to "config.yml" and edit before starting
+# the service.
+
+#hostName: default is "localhost"
+useVault: false
+vaultToken: myroot
+vaultUrl: http://vault:8200
+localContextPath: secret/credentials
+remoteContextPath: secret/credentials
+useTls: false
+hostName: localhost 
+serverAddress: 
+port: 10389
+sslPort: 
+certName: 
+certPwd: 
+serviceName: "embeddedLDAP"
+localUserName: "uid=admin,ou=system"
+localPasswd: "secret"
+nbThreads: 3
+backlog: 5
+#changeLog: true or false
+changeLog: false
+#partition: usage - [partitionId:partition1, partitionId:partition2...]
+useCustomPartition: true
+partitionName: "o=onscaleds"
+partitionLoc: "file:///rolodex-data"
+connectors: ["localhost:12389:uid=admin,ou=system:secret:ou=system:ou=users,ou=system:apacheds","192.168.99.100:389:cn=admin,dc=example,dc=org:admin:ou=onscaleds,dc=example,dc=org:ou=users,ou=onscaleds,dc=example,dc=org:openldap"]  
+
+maxRetries: 25
+parentNode: o=emc
+schemaFileName : rolodex.ldif
+#SchemaFileName: prod-rolodex.ldif
+interceptor: "com.virtustream.coreservices.rolodex.interceptors.ProxyInterceptor"
+transparentProxy: true
+tenancyDn: ou=provisioners
+mappingDn: ou=mapping
+schemaFilter: (ou=*)
+rolodexAttrs: ["tenantId","placeholderAttrs"]
+#sampleTenant: tenantName:sourceTenantDn:sourceUsersDN:attrsMap:readOnly:ldapType
+#"sampletenant1:o=emc:ou=users,ou=sampletenant1,o=emc:null:true:ApacheDS"
+sampleTenant: []
+
+                
+        
+defaultConnectorOperations:
+     search:
+         baseDN: o=emc2
+         filter: (objectclass=*)
+         attributes: all
+
+
+server:
+  applicationConnectors:
+    - type: http
+      port: 9185
+      outputBufferSize: 32KiB
+      idleTimeout: 30 seconds
+      minBufferPoolSize: 64 bytes
+      bufferPoolIncrement: 1KiB
+      maxBufferPoolSize: 64KiB
+      acceptorThreads: 1
+      selectorThreads: 2
+      acceptQueueSize: 1024
+      reuseAddress: true
+      soLingerTime: 600s
+  adminConnectors:
+    - type: http
+      port: 9186
+      
+database:
+  driverClass: org.postgresql.Driver
+  user: postgres
+  password: mysecretpassword
+  url: jdbc:postgresql://192.168.99.100:5432/postgres
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # the maximum amount of time to wait on an empty pool before throwing an exception
+  maxWaitForConnection: 1s
+
+  # the SQL query to run when validating a connection's liveness
+  validationQuery: "/* MyApplication Health Check */ SELECT 1"
+
+  # the minimum number of connections to keep open
+  minSize: 8
+
+  # the maximum number of connections to keep open
+  maxSize: 32
+
+  # whether or not idle connections should be validated
+  checkConnectionWhileIdle: false
+      
+# using this instead of logback.xml
+logging:
+   level: INFO
+   loggers:
+      com.virtustream.coreservices.rolodex.services: INFO
+      com.virtustream.coreservices.rolodex: DEBUG
+      com.virtustream.coreservices: DEBUG
+      org.apache.directory: WARN
+   appenders: 
+      - type: console
+      - type: file
+        threshold: INFO
+        logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+        currentLogFilename: rolodex.log
+        archivedLogFilenamePattern: rolodex-%d{yyyy-MM-dd}-%i.log.gz
+        archivedFileCount: 5
+        timeZone: UTC
+        maxFileSize: 10MB
